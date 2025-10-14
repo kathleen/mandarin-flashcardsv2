@@ -1,0 +1,581 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mandarin Quiz App</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- React and ReactDOM CDNs -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <!-- Babel CDN for JSX transformation in the browser -->
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        /* Import Inter font */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap');
+        .font-inter {
+            font-family: 'Inter', sans-serif;
+        }
+        /* Custom scrollbar for the wrong words list */
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 8px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #888;
+            border-radius: 10px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #555;
+        }
+    </style>
+</head>
+<body class="font-inter bg-gradient-to-br from-blue-100 to-purple-200 min-h-screen flex items-center justify-center p-4">
+    <div id="root" class="w-full max-w-2xl"></div>
+
+    <script type="text/babel">
+        // Vocabulary data extracted from the provided images
+        const vocabulary = [
+            { chinese: '房间', pinyin: 'fángjiān', english: 'room' },
+            { chinese: '分', pinyin: 'fēn', english: 'minute, cent' },
+            { chinese: '几', pinyin: 'jǐ', english: 'how many, a few' },
+            { chinese: '加拿大', pinyin: 'Jiānádà', english: 'Canada' },
+            { chinese: '家', pinyin: 'jiā', english: 'home, family' },
+            { chinese: '高兴', pinyin: 'gāoxìng', english: 'happy' },
+            { chinese: '哥哥', pinyin: 'gēge', english: 'older brother' },
+            { chinese: '见', pinyin: 'jiàn', english: 'to see' },
+            { chinese: '个', pinyin: 'gè', english: '(measure word)' },
+            { chinese: '角', pinyin: 'jiǎo', english: 'horn, corner, (measure word for 1/10 yuan)' },
+            { chinese: '給', pinyin: 'gěi', english: 'to give' },
+            { chinese: '饺子', pinyin: 'jiǎozi', english: 'dumpling' },
+            { chinese: '工作', pinyin: 'gōngzuò', english: 'work (noun/verb)' },
+            { chinese: '教室', pinyin: 'jiàoshì', english: 'classroom' },
+            { chinese: '公共', pinyin: 'gōnggòng', english: 'public' },
+            { chinese: '公共汽车', pinyin: 'gōnggòng qìchē', english: 'public bus' },
+            { chinese: '姐姐', pinyin: 'jiějie', english: 'older sister' },
+            { chinese: '柜子', pinyin: 'guìzi', english: 'cabinet' },
+            { chinese: '借', pinyin: 'jiè', english: 'to borrow, to lend' },
+            { chinese: '贵', pinyin: 'guì', english: 'expensive' },
+            { chinese: '斤', pinyin: 'jīn', english: 'catty (unit of weight)' },
+            { chinese: '国', pinyin: 'guó', english: 'country' },
+            { chinese: '今天', pinyin: 'jīntiān', english: 'today' },
+            { chinese: '进', pinyin: 'jìn', english: 'to enter' },
+            { chinese: '九月', pinyin: 'jiǔyuè', english: 'September' },
+            { chinese: '久', pinyin: 'jiǔ', english: 'long (time)' },
+            { chinese: '酒', pinyin: 'jiǔ', english: 'wine, alcohol' },
+            { chinese: '还', pinyin: 'hái', english: 'still, also' },
+            { chinese: '还是', pinyin: 'háishi', english: 'or (in a question)' },
+            { chinese: '汉语', pinyin: 'Hànyǔ', english: 'Chinese language' },
+            { chinese: '好', pinyin: 'hǎo', english: 'good, fine' },
+            { chinese: '咖啡', pinyin: 'kāfēi', english: 'coffee' },
+            { chinese: '好久', pinyin: 'hǎojiǔ', english: 'a long time' },
+            { chinese: '刻', pinyin: 'kè', english: 'quarter (of an hour)' },
+            { chinese: '好久不见', pinyin: 'hǎojiǔ bú jiàn', english: 'long time no see' },
+            { chinese: '客气', pinyin: 'kèqi', english: 'polite' },
+            { chinese: '号', pinyin: 'hào', english: 'number, day (of month)' },
+            { chinese: '课', pinyin: 'kè', english: 'class, lesson' },
+            { chinese: '号码', pinyin: 'hàomǎ', english: 'phone number' },
+            { chinese: '空儿', pinyin: 'kòngr', english: 'free time' },
+            { chinese: '号/日', pinyin: 'hào/rì', english: 'number/day' },
+            { chinese: '口', pinyin: 'kǒu', english: 'mouth, (measure word)' },
+            { chinese: '喝', pinyin: 'hē', english: 'to drink' },
+            { chinese: '块/元', pinyin: 'kuài/yuán', english: 'yuan (measure word for money)' },
+            { chinese: '和', pinyin: 'hé', english: 'and, with' },
+            { chinese: '快乐', pinyin: 'kuàilè', english: 'happy' },
+            { chinese: '很', pinyin: 'hěn', english: 'very' },
+            { chinese: '后', pinyin: 'hòu', english: 'behind, after' },
+            { chinese: '后边', pinyin: 'hòubian', english: 'behind, at the back' },
+            { chinese: '欢迎', pinyin: 'huānying', english: 'to welcome' },
+            { chinese: '换', pinyin: 'huàn', english: 'to change, to exchange' },
+            { chinese: '回', pinyin: 'huí', english: 'to return' },
+            { chinese: '来', pinyin: 'lái', english: 'to come' },
+            { chinese: '老师', pinyin: 'lǎoshī', english: 'teacher' },
+            { chinese: '礼物', pinyin: 'lǐwù', english: 'gift' },
+            { chinese: '里边', pinyin: 'lǐbian', english: 'inside' },
+            { chinese: '两', pinyin: 'liǎng', english: 'two (used before measure words)' },
+            { chinese: '辆', pinyin: 'liàng', english: '(measure word for vehicles)' },
+            { chinese: '零', pinyin: 'líng', english: 'zero' },
+            { chinese: '六月', pinyin: 'liùyuè', english: 'June' },
+            { chinese: '楼', pinyin: 'lóu', english: 'building, floor' },
+            { chinese: '路', pinyin: 'lù', english: 'road' },
+            { chinese: '难', pinyin: 'nán', english: 'difficult' },
+            { chinese: '你', pinyin: 'nǐ', english: 'you' },
+            { chinese: '你们', pinyin: 'nǐmen', english: 'you (plural)' },
+            { chinese: '他', pinyin: 'tā', english: 'he, him' },
+            { chinese: '女', pinyin: 'nǚ', english: 'female' },
+            { chinese: '女生', pinyin: 'nǚshēng', english: 'female student' },
+            { chinese: '妈妈', pinyin: 'māma', english: 'mother' },
+            { chinese: '吗', pinyin: 'ma', english: '(question particle)' },
+            { chinese: '买', pinyin: 'mǎi', english: 'to buy' },
+            { chinese: '忙', pinyin: 'máng', english: 'busy' },
+            { chinese: '毛/角', pinyin: 'máo/jiǎo', english: 'mao (1/10 yuan)' },
+            { chinese: '没问题', pinyin: 'méi wèntí', english: 'no problem' },
+            { chinese: '没有', pinyin: 'méiyǒu', english: 'not have, there is not' },
+            { chinese: '每', pinyin: 'měi', english: 'every' },
+            { chinese: '美元', pinyin: 'měiyuán', english: 'US dollar' },
+            { chinese: '妹妹', pinyin: 'mèimei', english: 'younger sister' },
+            { chinese: '们', pinyin: 'men', english: '(plural suffix for pronouns and nouns)' },
+            { chinese: '米饭', pinyin: 'mǐfàn', english: 'cooked rice' },
+            { chinese: '面包', pinyin: 'miànbāo', english: 'bread' },
+            { chinese: '面条', pinyin: 'miàntiáor', english: 'noodles' },
+            { chinese: '名字', pinyin: 'míngzi', english: 'name' },
+            { chinese: '明天', pinyin: 'míngtiān', english: 'tomorrow' },
+            { chinese: '欧元', pinyin: 'ōuyuán', english: 'Euro' },
+            { chinese: '旁', pinyin: 'páng', english: 'side' },
+            { chinese: '旁边', pinyin: 'pángbiān', english: 'beside, next to' },
+            { chinese: '朋友', pinyin: 'péngyou', english: 'friend' },
+            { chinese: '啤酒', pinyin: 'píjiǔ', english: 'beer' },
+            { chinese: '便宜', pinyin: 'piányi', english: 'cheap' },
+            { chinese: '苹果', pinyin: 'píngguǒ', english: 'apple' },
+            { chinese: '哪', pinyin: 'nǎ/něi', english: 'which' },
+            { chinese: '哪儿', pinyin: 'nǎr', english: 'where' },
+            { chinese: '那', pinyin: 'nà', english: 'that' },
+            { chinese: '男', pinyin: 'nán', english: 'male' },
+            { chinese: '男生', pinyin: 'nánshēng', english: 'male student' },
+            { chinese: '南', pinyin: 'nán', english: 'south' },
+            { chinese: '南边', pinyin: 'nánbian', english: 'south side' },
+            { chinese: '七月', pinyin: 'qīyuè', english: 'July' },
+            { chinese: '骑', pinyin: 'qí', english: 'to ride' },
+            { chinese: '起床', pinyin: 'qǐchuáng', english: 'to get up (from bed)' },
+            { chinese: '汽车', pinyin: 'qìchē', english: 'car' },
+            { chinese: '千', pinyin: 'qiān', english: 'thousand' },
+            { chinese: '前', pinyin: 'qián', english: 'front, before' },
+            { chinese: '前边', pinyin: 'qiánbian', english: 'in front of' },
+            { chinese: '钱', pinyin: 'qián', english: 'money' },
+            { chinese: '墙', pinyin: 'qiáng', english: 'wall' },
+            { chinese: '请', pinyin: 'qǐng', english: 'please, to invite' },
+            { chinese: '去', pinyin: 'qù', english: 'to go' },
+            { chinese: '全', pinyin: 'quán', english: 'whole, entire' },
+            { chinese: '人', pinyin: 'rén', english: 'person' },
+            { chinese: '人民', pinyin: 'rénmín', english: 'the people' },
+            { chinese: '人民币', pinyin: 'rénmínbì', english: 'RMB (Chinese currency)' },
+            { chinese: '日', pinyin: 'rì', english: 'day, sun' },
+            { chinese: '日本', pinyin: 'Rìběn', english: 'Japan' },
+            { chinese: '日元', pinyin: 'rìyuán', english: 'Japanese Yen' },
+            { chinese: '三月', pinyin: 'sānyuè', english: 'March' },
+            { chinese: '上', pinyin: 'shàng', english: 'up, above, to go up' },
+            { chinese: '上边', pinyin: 'shàngbian', english: 'above, on top' },
+            { chinese: '上课', pinyin: 'shàng kè', english: 'to attend class' },
+            { chinese: '上午', pinyin: 'shàngwǔ', english: 'morning' },
+            { chinese: '身体', pinyin: 'shēntǐ', english: 'body, health' },
+            { chinese: '什么', pinyin: 'shénme', english: 'what' },
+            { chinese: '生日', pinyin: 'shēngrì', english: 'birthday' },
+            { chinese: '十月', pinyin: 'shíyuè', english: 'October' },
+            { chinese: '十二月', pinyin: 'shí\'èryuè', english: 'December' },
+            { chinese: '十一月', pinyin: 'shíyīyuè', english: 'November' },
+            { chinese: '时候', pinyin: 'shíhou', english: 'time, moment' },
+            { chinese: '是', pinyin: 'shì', english: 'to be' },
+            { chinese: '书', pinyin: 'shū', english: 'book' },
+            { chinese: '书店', pinyin: 'shūdiàn', english: 'bookstore' },
+            { chinese: '书架', pinyin: 'shūjià', english: 'bookshelf' },
+            { chinese: '谁', pinyin: 'shéi/shuí', english: 'who' },
+            { chinese: '睡', pinyin: 'shuì', english: 'to sleep' },
+            { chinese: '睡觉', pinyin: 'shuì jiào', english: 'to sleep' },
+            { chinese: '四月', pinyin: 'sìyuè', english: 'April' },
+            { chinese: '送', pinyin: 'sòng', english: 'to give (as a gift), to send' },
+            { chinese: '宿舍', pinyin: 'sùshè', english: 'dormitory' },
+            { chinese: '他', pinyin: 'tā', english: 'he, him' },
+            { chinese: '他们', pinyin: 'tāmen', english: 'they, them (male or mixed)' },
+            { chinese: '她们', pinyin: 'tāmen', english: 'they, them (female)' },
+            { chinese: '太', pinyin: 'tài', english: 'too, extremely' },
+            { chinese: '天', pinyin: 'tiān', english: 'day, sky' },
+            { chinese: '同学', pinyin: 'tóngxué', english: 'classmate' },
+            { chinese: '外', pinyin: 'wài', english: 'outside' },
+            { chinese: '外边', pinyin: 'wàibian', english: 'outside' },
+            { chinese: '外国', pinyin: 'wàiguó', english: 'foreign country' },
+            { chinese: '玩儿', pinyin: 'wánr', english: 'to play' },
+            { chinese: '晚上', pinyin: 'wǎnshang', english: 'evening, night' },
+            { chinese: '万', pinyin: 'wàn', english: 'ten thousand' },
+            { chinese: '位', pinyin: 'wèi', english: '(polite measure word for people)' },
+            { chinese: '问', pinyin: 'wèn', english: 'to ask' },
+            { chinese: '问题', pinyin: 'wèntí', english: 'question, problem' },
+            { chinese: '我', pinyin: 'wǒ', english: 'I, me' },
+            { chinese: '我们', pinyin: 'wǒmen', english: 'we, us' },
+            { chinese: '五月', pinyin: 'wǔyuè', english: 'May' },
+            { chinese: '西', pinyin: 'xī', english: 'west' },
+            { chinese: '西边', pinyin: 'xībian', english: 'west side' },
+            { chinese: '下', pinyin: 'xià', english: 'down, below, to go down' },
+            { chinese: '下边', pinyin: 'xiàbian', english: 'below, under' },
+            { chinese: '下课', pinyin: 'xià kè', english: 'to finish class' },
+            { chinese: '下午', pinyin: 'xiàwǔ', english: 'afternoon' },
+            { chinese: '现在', pinyin: 'xiànzài', english: 'now' },
+            { chinese: '香蕉', pinyin: 'xiāngjiāo', english: 'banana' },
+            { chinese: '谢谢', pinyin: 'xièxie', english: 'thank you' },
+            { chinese: '星期', pinyin: 'xīngqī', english: 'week' },
+            { chinese: '星期二', pinyin: 'xīngqī\'èr', english: 'Tuesday' },
+            { chinese: '星期六', pinyin: 'xīngqiliù', english: 'Saturday' },
+            { chinese: '星期日', pinyin: 'xīngqirì', english: 'Sunday' },
+            { chinese: '星期三', pinyin: 'xīngqīsān', english: 'Wednesday' },
+            { chinese: '星期四', pinyin: 'xīngqīsì', english: 'Thursday' },
+            { chinese: '星期天', pinyin: 'xīngqītiān', english: 'Sunday' },
+            { chinese: '星期五', pinyin: 'xīngqīwǔ', english: 'Friday' },
+            { chinese: '星期一', pinyin: 'xīngqīyī', english: 'Monday' },
+            { chinese: '行', pinyin: 'xíng', english: 'all right, OK' },
+            { chinese: '学', pinyin: 'xué', english: 'to learn, to study' },
+            { chinese: '学生', pinyin: 'xuésheng', english: 'student' },
+            { chinese: '学习', pinyin: 'xuéxí', english: 'to study, to learn' },
+            { chinese: '学校', pinyin: 'xuéxiào', english: 'school' },
+            { chinese: '要', pinyin: 'yào', english: 'to want, to need' },
+            { chinese: '也', pinyin: 'yě', english: 'also, too' },
+            { chinese: '一月', pinyin: 'yīyuè', english: 'January' },
+            { chinese: '一共', pinyin: 'yīgòng', english: 'altogether' },
+            { chinese: '(一)点儿', pinyin: '(yī) diǎnr', english: 'a little bit' },
+            { chinese: '椅子', pinyin: 'yǐzi', english: 'chair' },
+            { chinese: '银行', pinyin: 'yínháng', english: 'bank' },
+            { chinese: '英语', pinyin: 'Yīngyǔ', english: 'English language' },
+            { chinese: '用', pinyin: 'yòng', english: 'to use' },
+            { chinese: '有', pinyin: 'yǒu', english: 'to have, there is/are' },
+            { chinese: '右', pinyin: 'yòu', english: 'right (direction)' },
+            { chinese: '右边', pinyin: 'yòubian', english: 'right side' },
+            { chinese: '语', pinyin: 'yǔ', english: 'language' },
+            { chinese: '月', pinyin: 'yuè', english: 'month, moon' },
+            { chinese: '再见', pinyin: 'zàijiàn', english: 'goodbye' },
+            { chinese: '在', pinyin: 'zài', english: 'at, in, on (verb/preposition)' },
+            { chinese: '咱们', pinyin: 'zánmen', english: 'we, us (including the listener)' },
+            { chinese: '早上', pinyin: 'zǎoshang', english: 'morning' },
+            { chinese: '怎么', pinyin: 'zěnme', english: 'how' },
+            { chinese: '怎么样', pinyin: 'zěnmeyàng', english: 'how is it? how about?' },
+            { chinese: '张', pinyin: 'zhāng', english: '(measure word for flat objects)' },
+            { chinese: '找', pinyin: 'zhǎo', english: 'to look for, to find' },
+            { chinese: '照片', pinyin: 'zhàopiàn', english: 'photo' },
+            { chinese: '这', pinyin: 'zhè', english: 'this' },
+            { chinese: '这儿', pinyin: 'zhèr', english: 'here' },
+            { chinese: '支', pinyin: 'zhī', english: '(measure word for long, thin, inflexible objects)' },
+            { chinese: '中国', pinyin: 'Zhōngguó', english: 'China' },
+            { chinese: '中午', pinyin: 'zhōngwǔ', english: 'noon' },
+            { chinese: '种', pinyin: 'zhǒng', english: 'kind, type (measure word)' },
+            { chinese: '周末', pinyin: 'zhōumò', english: 'weekend' },
+            { chinese: '住', pinyin: 'zhù', english: 'to live, to stay' },
+            { chinese: '祝', pinyin: 'zhù', english: 'to wish' },
+            { chinese: '桌子', pinyin: 'zhuōzi', english: 'table' },
+            { chinese: '自行车', pinyin: 'zìxíngchē', english: 'bicycle' },
+            { chinese: '走', pinyin: 'zǒu', english: 'to walk, to go' },
+            { chinese: '走路', pinyin: 'zǒu lù', english: 'to walk' },
+            { chinese: '昨天', pinyin: 'zuótiān', english: 'yesterday' },
+            { chinese: '左', pinyin: 'zuǒ', english: 'left (direction)' },
+            { chinese: '左边', pinyin: 'zuǒbian', english: 'left side' },
+            { chinese: '坐', pinyin: 'zuò', english: 'to sit, to travel by' },
+            { chinese: '座', pinyin: 'zuò', english: '(measure word for buildings, mountains, etc.)' },
+            { chinese: '做', pinyin: 'zuò', english: 'to do, to make' },
+            { chinese: '八月', pinyin: 'bāyuè', english: 'August' },
+            { chinese: '把', pinyin: 'bǎ', english: '(measure word), (preposition for direct object)' },
+            { chinese: '爸', pinyin: 'bà', english: 'father' },
+            { chinese: '吧', pinyin: 'ba', english: '(modal particle)' },
+            { chinese: '百', pinyin: 'bǎi', english: 'hundred' },
+            { chinese: '班', pinyin: 'bān', english: 'class, team' },
+            { chinese: '半', pinyin: 'bàn', english: 'half' },
+            { chinese: '包子', pinyin: 'bāozi', english: 'steamed stuffed bun' },
+            { chinese: '北', pinyin: 'běi', english: 'north' },
+            { chinese: '北边', pinyin: 'běibian', english: 'north side' },
+            { chinese: '本', pinyin: 'běn', english: '(measure word for books, etc.)' },
+            { chinese: '本子', pinyin: 'běnzi', english: 'notebook' },
+            { chinese: '笔', pinyin: 'bǐ', english: 'pen' },
+            { chinese: '币', pinyin: 'bì', english: 'currency' },
+            { chinese: '边', pinyin: 'biān', english: 'side, edge' },
+            { chinese: '别的', pinyin: 'bié de', english: 'other' },
+            { chinese: '不客气', pinyin: 'bú kèqi', english: 'you\'re welcome' },
+            { chinese: '不谢', pinyin: 'bú xiè', english: 'you\'re welcome' },
+            { chinese: '不用', pinyin: 'búyòng', english: 'no need' },
+            { chinese: '不', pinyin: 'bù', english: 'not, no' },
+            { chinese: '不行', pinyin: 'bù xíng', english: 'won\'t do, not allowed' },
+            { chinese: '茶', pinyin: 'chá', english: 'tea' },
+            { chinese: '差', pinyin: 'chà', english: 'to lack, short of, poor' },
+            { chinese: '超市', pinyin: 'chāoshì', english: 'supermarket' },
+            { chinese: '车', pinyin: 'chē', english: 'car, vehicle' },
+            { chinese: '吃', pinyin: 'chī', english: 'to eat' },
+            { chinese: '出发', pinyin: 'chūfā', english: 'to set off, to depart' },
+            { chinese: '出租', pinyin: 'chūzū', english: 'to rent out' },
+            { chinese: '出租车', pinyin: 'chūzūchē', english: 'taxi' },
+            { chinese: '床', pinyin: 'chuáng', english: 'bed' },
+            { chinese: '词典', pinyin: 'cídiǎn', english: 'dictionary' },
+            { chinese: '打的', pinyin: 'dǎ dī', english: 'to take a taxi' },
+            { chinese: '大夫', pinyin: 'dàifu', english: 'doctor' },
+            { chinese: '的', pinyin: 'de', english: '(possessive/modifying particle)' },
+            { chinese: '地方', pinyin: 'dìfang', english: 'place' },
+            { chinese: '地图', pinyin: 'dìtú', english: 'map' },
+            { chinese: '弟弟', pinyin: 'dìdi', english: 'younger brother' },
+            { chinese: '点', pinyin: 'diǎn', english: 'o\'clock, dot, to order' },
+            { chinese: '电话', pinyin: 'diànhuà', english: 'telephone' },
+            { chinese: '店', pinyin: 'diàn', english: 'shop, store' },
+            { chinese: '东', pinyin: 'dōng', english: 'east' },
+            { chinese: '东边', pinyin: 'dōngbian', english: 'east side' },
+            { chinese: '东西', pinyin: 'dōngxi', english: 'thing, stuff' },
+            { chinese: '都', pinyin: 'dōu', english: 'all, both' },
+            { chinese: '对', pinyin: 'duì', english: 'correct, right' },
+            { chinese: '多少', pinyin: 'duōshao', english: 'how many, how much' },
+            { chinese: '二月', pinyin: 'èryuè', english: 'February' },
+            { chinese: '法国', pinyin: 'Fǎguó', english: 'France' },
+        ];
+
+        function App() {
+            // State for the current word being displayed
+            const [currentWord, setCurrentWord] = React.useState(null);
+            // State to control visibility of pinyin and English meaning
+            const [showPinyin, setShowPinyin] = React.useState(false);
+            const [showEnglish, setShowEnglish] = React.useState(false);
+            // State for quiz statistics
+            const [correctCount, setCorrectCount] = React.useState(0);
+            const [wrongCount, setWrongCount] = React.useState(0);
+            // State to store words marked as wrong
+            const [wrongWords, setWrongWords] = React.useState([]);
+            // State to track words already presented in the current quiz session
+            const [answeredWords, setAnsweredWords] = React.useState(new Set());
+            // State to control the display of the wrong words list
+            const [showWrongWordsList, setShowWrongWordsList] = React.useState(false);
+            // State to manage quiz start/end
+            const [quizStarted, setQuizStarted] = React.useState(false);
+            // State for message display (e.g., "Quiz Completed!")
+            const [message, setMessage] = React.useState('');
+
+            // Function to get a random word that hasn't been answered yet
+            const getRandomWord = React.useCallback(() => {
+                const remainingWords = vocabulary.filter(
+                    (word) => !answeredWords.has(word.chinese)
+                );
+
+                if (remainingWords.length === 0) {
+                    // All words have been answered
+                    setMessage('Quiz Completed! All words have been covered.');
+                    return null;
+                }
+
+                const randomIndex = Math.floor(Math.random() * remainingWords.length);
+                return remainingWords[randomIndex];
+            }, [answeredWords]);
+
+            // Function to start or move to the next word
+            const startNextWord = React.useCallback(() => {
+                setShowPinyin(false);
+                setShowEnglish(false);
+                setMessage('');
+                const nextWord = getRandomWord();
+                if (nextWord) {
+                    setCurrentWord(nextWord);
+                    setAnsweredWords((prev) => new Set(prev).add(nextWord.chinese));
+                } else {
+                    setCurrentWord(null); // No more words
+                }
+            }, [getRandomWord]);
+
+            // Effect to start the quiz when the component mounts or when quizStarted changes
+            React.useEffect(() => {
+                if (quizStarted && !currentWord) {
+                    startNextWord();
+                }
+            }, [quizStarted, currentWord, startNextWord]);
+
+            // Handle marking a word as correct
+            const handleCorrect = () => {
+                if (currentWord) {
+                    setCorrectCount((prev) => prev + 1);
+                    startNextWord();
+                }
+            };
+
+            // Handle marking a word as wrong
+            const handleWrong = () => {
+                if (currentWord) {
+                    setWrongCount((prev) => prev + 1);
+                    setWrongWords((prev) => [...prev, currentWord]);
+                    startNextWord();
+                }
+            };
+
+            // Reset the entire quiz
+            const resetQuiz = () => {
+                setCurrentWord(null);
+                setShowPinyin(false);
+                setShowEnglish(false);
+                setCorrectCount(0);
+                setWrongCount(0);
+                setWrongWords([]);
+                setAnsweredWords(new Set());
+                setShowWrongWordsList(false);
+                setQuizStarted(false);
+                setMessage('');
+            };
+
+            // Calculate progress
+            const totalWords = vocabulary.length;
+            const wordsAnswered = correctCount + wrongCount;
+            const progressPercentage =
+                totalWords > 0 ? Math.floor((wordsAnswered / totalWords) * 100) : 0;
+
+            return (
+                <div className="bg-white p-8 rounded-xl shadow-2xl w-full max-w-2xl text-center">
+                    <h1 className="text-4xl font-extrabold text-gray-800 mb-6">
+                        Mandarin Quiz
+                    </h1>
+
+                    {!quizStarted ? (
+                        <button
+                            onClick={() => setQuizStarted(true)}
+                            className="bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+                        >
+                            Start Quiz
+                        </button>
+                    ) : (
+                        <>
+                            {message && (
+                                <div className="bg-blue-100 text-blue-800 p-3 rounded-lg mb-4 text-lg font-semibold">
+                                    {message}
+                                </div>
+                            )}
+
+                            {currentWord ? (
+                                <div className="mb-8">
+                                    <div className="text-6xl font-bold text-blue-700 mb-4">
+                                        {currentWord.chinese}
+                                    </div>
+                                    <div
+                                        className={`text-3xl text-gray-600 mb-2 transition-opacity duration-300 ${
+                                            showPinyin ? 'opacity-100' : 'opacity-0'
+                                        }`}
+                                    >
+                                        {showPinyin ? currentWord.pinyin : ' '}
+                                    </div>
+                                    <div
+                                        className={`text-2xl text-gray-800 transition-opacity duration-300 ${
+                                            showEnglish ? 'opacity-100' : 'opacity-0'
+                                        }`}
+                                    >
+                                        {showEnglish ? currentWord.english : ' '}
+                                    </div>
+
+                                    <div className="flex justify-center space-x-4 mt-6">
+                                        <button
+                                            onClick={() => setShowPinyin(true)}
+                                            className="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+                                        >
+                                            Show Pinyin
+                                        </button>
+                                        <button
+                                            onClick={() => setShowEnglish(true)}
+                                            className="bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+                                        >
+                                            Show English
+                                        </button>
+                                    </div>
+
+                                    <div className="flex justify-center space-x-4 mt-8">
+                                        <button
+                                            onClick={handleCorrect}
+                                            className="bg-green-500 hover:bg-green-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-6 w-6 mr-2"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                strokeWidth={2}
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M5 13l4 4L19 7"
+                                                />
+                                            </svg>
+                                            Got it Right!
+                                        </button>
+                                        <button
+                                            onClick={handleWrong}
+                                            className="bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-6 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 flex items-center justify-center"
+                                        >
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-6 w-6 mr-2"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                                strokeWidth={2}
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    d="M6 18L18 6M6 6l12 12"
+                                                />
+                                            </svg>
+                                            Got it Wrong
+                                        </button>
+                                    </div>
+                                </div>
+                            ) : (
+                                <div className="text-xl text-gray-700">
+                                    {message || 'Click "Start Quiz" to begin!'}
+                                </div>
+                            )}
+
+                            <div className="mt-8 pt-6 border-t border-gray-200">
+                                <h2 className="text-2xl font-bold text-gray-700 mb-4">
+                                    Your Progress
+                                </h2>
+                                <div className="flex justify-around text-lg font-semibold mb-4">
+                                    <span className="text-green-600">Correct: {correctCount}</span>
+                                    <span className="text-red-600">Wrong: {wrongCount}</span>
+                                </div>
+                                <div className="w-full bg-gray-200 rounded-full h-4 mb-4">
+                                    <div
+                                        className="bg-blue-500 h-4 rounded-full"
+                                        style={{ width: `${progressPercentage}%` }}
+                                    ></div>
+                                </div>
+                                <p className="text-gray-600 mb-6">
+                                    {wordsAnswered} / {totalWords} words reviewed (
+                                    {progressPercentage}%)
+                                </p>
+
+                                <div className="flex justify-center space-x-4">
+                                    <button
+                                        onClick={() => setShowWrongWordsList(!showWrongWordsList)}
+                                        className="bg-yellow-500 hover:bg-yellow-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+                                    >
+                                        {showWrongWordsList ? 'Hide Wrong Words' : 'View Wrong Words'}
+                                    </button>
+                                    <button
+                                        onClick={resetQuiz}
+                                        className="bg-gray-500 hover:bg-gray-600 text-white font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105"
+                                    >
+                                        Reset Quiz
+                                    </button>
+                                </div>
+
+                                {showWrongWordsList && wrongWords.length > 0 && (
+                                    <div className="mt-8 border-t border-gray-200 pt-6">
+                                        <h3 className="text-xl font-bold text-red-700 mb-4">
+                                            Words You Got Wrong:
+                                        </h3>
+                                        <ul className="list-disc list-inside text-left text-gray-700 max-h-60 overflow-y-auto custom-scrollbar p-2 rounded-md bg-gray-50">
+                                            {wrongWords.map((word, index) => (
+                                                <li key={index} className="mb-1">
+                                                    <span className="font-semibold text-blue-800">
+                                                        {word.chinese}
+                                                    </span>{' '}
+                                                    - {word.pinyin} ({word.english})
+                                                </li>
+                                            ))}
+                                        </ul>
+                                    </div>
+                                )}
+
+                                {showWrongWordsList && wrongWords.length === 0 && (
+                                    <div className="mt-8 border-t border-gray-200 pt-6 text-gray-600">
+                                        <p>Great job! You haven't marked any words wrong yet.</p>
+                                    </div>
+                                )}
+                            </div>
+                        </>
+                    )}
+                </div>
+            );
+        }
+
+        // Render the React component into the root div
+        ReactDOM.createRoot(document.getElementById('root')).render(<App />);
+    </script>
+</body>
+</html>
